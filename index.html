@@ -2,1219 +2,1330 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Zoe Dev — Páginas Web que Impactan</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;1,9..40,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rainbows and Sugar 🌈</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=Dancing+Script:wght@600&display=swap" rel="stylesheet" />
+
   <style>
+    /* ===================================
+       CSS VARIABLES & RESET
+    =================================== */
     :root {
-      --lime: #C8FF00;
-      --black: #080808;
-      --white: #F5F5F0;
-      --gray: #1a1a1a;
-      --mid: #2e2e2e;
+      --blush:     #f9d5e5;
+      --lavender:  #e8d5f9;
+      --mint:      #d5f9e8;
+      --peach:     #f9e8d5;
+      --sky:       #d5e8f9;
+      --gold:      #f5c842;
+      --rose:      #e8617a;
+      --plum:      #9b59b6;
+      --dark:      #2d1f2e;
+      --mid:       #6b4c7a;
+      --light:     #fdf6ff;
+      --white:     #ffffff;
+
+      --font-display: 'Playfair Display', serif;
+      --font-script:  'Dancing Script', cursive;
+      --font-body:    'DM Sans', sans-serif;
+
+      --radius: 24px;
+      --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     html { scroll-behavior: smooth; }
 
     body {
-      background: var(--black);
-      color: var(--white);
-      font-family: 'DM Sans', sans-serif;
+      font-family: var(--font-body);
+      background: var(--light);
+      color: var(--dark);
       overflow-x: hidden;
-      cursor: none;
+      cursor: none; /* hide native cursor */
     }
 
-    /* CURSOR */
+    /* ===================================
+       CUSTOM CURSOR (pancake emoji)
+    =================================== */
     #cursor {
-      width: 14px; height: 14px;
-      background: var(--lime);
-      border-radius: 50%;
-      position: fixed; top: 0; left: 0;
-      pointer-events: none;
-      z-index: 9999;
-      transition: transform 0.15s ease, width 0.2s, height 0.2s;
-      mix-blend-mode: difference;
-    }
-    #cursor-ring {
-      width: 40px; height: 40px;
-      border: 1.5px solid var(--lime);
-      border-radius: 50%;
-      position: fixed; top: 0; left: 0;
-      pointer-events: none;
-      z-index: 9998;
-      transition: transform 0.35s cubic-bezier(.23,1,.32,1), opacity 0.2s;
-      mix-blend-mode: difference;
-    }
-    body:hover #cursor-ring { opacity: 1; }
-
-    /* CANVAS */
-    #bg-canvas {
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: 0;
+      width: 40px; height: 40px;
+      font-size: 28px;
+      line-height: 40px;
+      text-align: center;
       pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.08s ease;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18));
+      will-change: transform;
+    }
+    #cursor.clicking { transform: translate(-50%, -50%) scale(0.75) rotate(-20deg); }
+    #cursor-trail {
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+    }
+    .trail-dot {
+      position: absolute;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--rose);
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      animation: trailFade 0.6s ease forwards;
+    }
+    @keyframes trailFade {
+      0%   { opacity: 0.7; transform: translate(-50%,-50%) scale(1); }
+      100% { opacity: 0;   transform: translate(-50%,-50%) scale(0); }
     }
 
-    /* NAV */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.5rem 3rem;
-      border-bottom: 1px solid rgba(200,255,0,0.1);
-      backdrop-filter: blur(12px);
-      background: rgba(8,8,8,0.6);
-    }
-    .nav-logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2rem;
-      letter-spacing: 0.1em;
-      color: var(--lime);
-    }
-    .nav-logo span { color: var(--white); }
-    .nav-links {
-      display: flex;
-      gap: 2.5rem;
-      list-style: none;
-    }
-    .nav-links a {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      text-decoration: none;
-      color: var(--white);
-      opacity: 0.6;
-      transition: opacity 0.2s, color 0.2s;
-    }
-    .nav-links a:hover { opacity: 1; color: var(--lime); }
-    .nav-cta {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      text-decoration: none;
-      color: var(--black);
-      background: var(--lime);
-      padding: 0.55rem 1.25rem;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(200,255,0,0.3); }
-
-    /* HERO */
+    /* ===================================
+       HERO HEADER
+    =================================== */
     #hero {
       position: relative;
-      min-height: 100vh;
+      height: 100vh;
+      min-height: 600px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      padding: 0 3rem;
-      z-index: 1;
-    }
-    .hero-eyebrow {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--lime);
-      margin-bottom: 1.5rem;
-      opacity: 0;
-      animation: fadeUp 0.8s 0.2s forwards;
-    }
-    .hero-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(5rem, 14vw, 13rem);
-      line-height: 0.92;
-      letter-spacing: -0.01em;
-      opacity: 0;
-      animation: fadeUp 0.9s 0.4s forwards;
-    }
-    .hero-title em {
-      font-style: normal;
-      color: transparent;
-      -webkit-text-stroke: 1.5px var(--lime);
-    }
-    .hero-sub {
-      max-width: 420px;
-      margin-top: 2rem;
-      font-size: 1rem;
-      line-height: 1.7;
-      color: rgba(245,245,240,0.55);
-      opacity: 0;
-      animation: fadeUp 0.9s 0.6s forwards;
-    }
-    .hero-actions {
-      margin-top: 3rem;
-      display: flex;
-      gap: 1.25rem;
       align-items: center;
-      opacity: 0;
-      animation: fadeUp 0.9s 0.8s forwards;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
     }
-    .btn-primary {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.78rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      text-decoration: none;
-      color: var(--black);
-      background: var(--lime);
-      padding: 1rem 2rem;
-      display: inline-block;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 30px rgba(200,255,0,0.35); }
-    .btn-ghost {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.78rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      text-decoration: none;
-      color: var(--white);
-      border: 1px solid rgba(245,245,240,0.25);
-      padding: 1rem 2rem;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .btn-ghost:hover { border-color: var(--lime); color: var(--lime); }
 
-    .hero-badge {
+    /* Gradient mesh background */
+    .hero-bg {
       position: absolute;
-      right: 4rem;
-      bottom: 5rem;
-      width: 130px; height: 130px;
-      opacity: 0;
-      animation: fadeIn 1s 1.2s forwards, spinSlow 12s 1.2s linear infinite;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 30%, #f9d5e5cc 0%, transparent 60%),
+        radial-gradient(ellipse 70% 70% at 80% 20%, #e8d5f9cc 0%, transparent 55%),
+        radial-gradient(ellipse 60% 80% at 50% 80%, #d5e8f9cc 0%, transparent 55%),
+        radial-gradient(ellipse 90% 50% at 70% 60%, #d5f9e8aa 0%, transparent 50%),
+        linear-gradient(135deg, #fff8fd 0%, #f5eeff 50%, #fff2f8 100%);
+      transition: filter 0.3s ease;
+      z-index: 0;
     }
-    .hero-badge svg { width: 100%; height: 100%; }
+
+    /* Floating decorative blobs */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.45;
+      animation: blobFloat linear infinite;
+      z-index: 0;
+    }
+    .blob-1 { width: 340px; height: 340px; background: var(--blush);   top: -80px;  left: -80px;  animation-duration: 18s; }
+    .blob-2 { width: 260px; height: 260px; background: var(--lavender);top: 10%;    right: -60px; animation-duration: 22s; animation-delay: -6s; }
+    .blob-3 { width: 200px; height: 200px; background: var(--mint);    bottom: 10%; left: 15%;    animation-duration: 15s; animation-delay: -3s; }
+    .blob-4 { width: 220px; height: 220px; background: var(--sky);     bottom: -40px;right: 20%;  animation-duration: 20s; animation-delay: -9s; }
+
+    @keyframes blobFloat {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      25%       { transform: translate(20px,-20px) scale(1.05); }
+      50%       { transform: translate(-10px,15px) scale(0.97); }
+      75%       { transform: translate(15px,10px) scale(1.03); }
+    }
+
+    /* Floating sugar particles */
+    .particles { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+    .particle {
+      position: absolute;
+      font-size: 1.2rem;
+      opacity: 0;
+      animation: particleDrift linear infinite;
+    }
+    @keyframes particleDrift {
+      0%   { opacity: 0;   transform: translateY(100vh) rotate(0deg); }
+      10%  { opacity: 0.8; }
+      90%  { opacity: 0.6; }
+      100% { opacity: 0;   transform: translateY(-20vh) rotate(360deg); }
+    }
+
+    /* Logo SVG - Unicorn pancake stack */
+    .logo-svg-wrap {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 20px;
+      animation: logoEntry 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes logoEntry {
+      from { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+      to   { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+
+    /* Unicorn pancake SVG */
+    .logo-svg { width: 160px; height: 160px; filter: drop-shadow(0 8px 24px rgba(155,89,182,0.25)); }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      animation: heroFadeUp 1s ease 0.3s both;
+    }
+    @keyframes heroFadeUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 8vw, 6rem);
+      font-weight: 700;
+      line-height: 1.05;
+      background: linear-gradient(135deg, var(--rose) 0%, var(--plum) 50%, #5b8af0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -1px;
+    }
+
+    .hero-sub {
+      font-family: var(--font-script);
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      color: var(--mid);
+      margin-top: 8px;
+      margin-bottom: 32px;
+      opacity: 0.85;
+    }
+
+    .hero-tagline {
+      font-size: 1rem;
+      color: var(--mid);
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      padding: 16px 36px;
+      background: linear-gradient(135deg, var(--rose), var(--plum));
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-decoration: none;
+      border-radius: 60px;
+      box-shadow: 0 8px 28px rgba(155,89,182,0.35);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      cursor: none;
+    }
+    .hero-cta:hover {
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 14px 40px rgba(155,89,182,0.45);
+    }
 
     .scroll-hint {
       position: absolute;
-      bottom: 2.5rem;
-      left: 3rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: rgba(245,245,240,0.35);
-      opacity: 0;
-      animation: fadeIn 1s 1.4s forwards;
-    }
-    .scroll-line {
-      width: 50px; height: 1px;
-      background: rgba(245,245,240,0.2);
-      position: relative;
-      overflow: hidden;
-    }
-    .scroll-line::after {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%;
-      width: 100%; height: 100%;
-      background: var(--lime);
-      animation: lineScroll 2s 1.5s ease-in-out infinite;
-    }
-
-    /* MARQUEE */
-    .marquee-section {
-      position: relative; z-index: 1;
-      padding: 1.5rem 0;
-      background: var(--lime);
-      overflow: hidden;
-      border-top: none;
-    }
-    .marquee-track {
-      display: flex;
-      gap: 3rem;
-      white-space: nowrap;
-      animation: marquee 18s linear infinite;
-    }
-    .marquee-item {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.2rem;
-      letter-spacing: 0.15em;
-      color: var(--black);
-      text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-    }
-    .marquee-dot {
-      width: 6px; height: 6px;
-      background: var(--black);
-      border-radius: 50%;
-    }
-
-    /* SERVICES */
-    #servicios {
-      position: relative; z-index: 1;
-      padding: 8rem 3rem;
-    }
-    .section-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--lime);
-      margin-bottom: 1rem;
-    }
-    .section-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(3rem, 6vw, 5.5rem);
-      line-height: 1;
-      margin-bottom: 4rem;
-    }
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5px;
-      background: rgba(200,255,0,0.1);
-    }
-    .service-card {
-      background: var(--black);
-      padding: 3rem 2.5rem;
-      position: relative;
-      overflow: hidden;
-      transition: background 0.3s;
-      border: 1px solid rgba(200,255,0,0.08);
-    }
-    .service-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 3px; height: 0;
-      background: var(--lime);
-      transition: height 0.4s ease;
-    }
-    .service-card:hover { background: #0f0f0f; }
-    .service-card:hover::before { height: 100%; }
-    .service-num {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      color: rgba(200,255,0,0.5);
-      margin-bottom: 1.5rem;
-    }
-    .service-icon {
-      font-size: 2.5rem;
-      margin-bottom: 1.5rem;
-      display: block;
-    }
-    .service-name {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2rem;
-      letter-spacing: 0.05em;
-      margin-bottom: 1rem;
-    }
-    .service-desc {
-      font-size: 0.9rem;
-      line-height: 1.7;
-      color: rgba(245,245,240,0.5);
-    }
-
-    /* 3D SCENE SECTION */
-    #scene-section {
-      position: relative; z-index: 1;
-      height: 80vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    #scene-canvas {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-    }
-    .scene-overlay-text {
-      position: relative;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 2;
-      text-align: center;
-      pointer-events: none;
-    }
-    .scene-big {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(4rem, 10vw, 9rem);
-      line-height: 1;
-      color: transparent;
-      -webkit-text-stroke: 1px rgba(200,255,0,0.6);
-    }
-
-    /* ABOUT */
-    #sobre-mi {
-      position: relative; z-index: 1;
-      padding: 8rem 3rem;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6rem;
-      align-items: center;
-    }
-    .about-visual {
-      position: relative;
-    }
-    .about-card {
-      background: var(--gray);
-      border: 1px solid rgba(200,255,0,0.12);
-      padding: 3rem;
-      position: relative;
-    }
-    .about-card::after {
-      content: '';
-      position: absolute;
-      top: 12px; right: -12px;
-      bottom: -12px; left: 12px;
-      border: 1px solid rgba(200,255,0,0.15);
-      z-index: -1;
-    }
-    .about-emoji { font-size: 4rem; margin-bottom: 1.5rem; display: block; }
-    .stat-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      margin-top: 2rem;
-    }
-    .stat-item { border-top: 1px solid rgba(200,255,0,0.2); padding-top: 1rem; }
-    .stat-num {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 3rem;
-      color: var(--lime);
-      line-height: 1;
-    }
-    .stat-label {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: rgba(245,245,240,0.4);
-      margin-top: 0.3rem;
-    }
-    .about-content .section-title { margin-bottom: 1.5rem; }
-    .about-text {
-      font-size: 1rem;
-      line-height: 1.8;
-      color: rgba(245,245,240,0.6);
-      margin-bottom: 1rem;
-    }
-    .about-text strong { color: var(--lime); font-weight: 500; }
-    .stack-tags {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      margin-top: 2rem;
-    }
-    .tag {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--lime);
-      border: 1px solid rgba(200,255,0,0.3);
-      padding: 0.4rem 0.8rem;
-    }
-
-    /* CTA SECTION */
-    #contacto {
-      position: relative; z-index: 1;
-      padding: 10rem 3rem;
-      text-align: center;
-      overflow: hidden;
-    }
-    .cta-bg {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 700px; height: 700px;
-      background: radial-gradient(circle, rgba(200,255,0,0.07) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .cta-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(4rem, 10vw, 9rem);
-      line-height: 0.95;
-      position: relative;
-    }
-    .cta-title em {
-      font-style: normal;
-      color: var(--lime);
-    }
-    .cta-sub {
-      margin: 2rem auto;
-      max-width: 480px;
-      font-size: 1rem;
-      line-height: 1.7;
-      color: rgba(245,245,240,0.5);
-    }
-    .whatsapp-btn {
-      display: inline-flex;
+      flex-direction: column;
       align-items: center;
-      gap: 1rem;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.85rem;
+      gap: 6px;
+      color: var(--mid);
+      font-size: 0.75rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      text-decoration: none;
-      color: var(--black);
-      background: var(--lime);
-      padding: 1.25rem 2.5rem;
-      margin-top: 1rem;
-      transition: transform 0.25s, box-shadow 0.25s;
-      position: relative;
-      overflow: hidden;
+      opacity: 0.7;
+      animation: scrollBounce 2s ease infinite;
     }
-    .whatsapp-btn::before {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.08);
-      transition: left 0.3s ease;
+    @keyframes scrollBounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(8px); }
     }
-    .whatsapp-btn:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 16px 40px rgba(200,255,0,0.4); }
-    .whatsapp-btn:hover::before { left: 0; }
-    .wa-icon { width: 22px; height: 22px; }
+    .scroll-hint svg { width: 20px; height: 20px; stroke: var(--mid); fill: none; }
 
-    /* FOOTER */
-    footer {
-      position: relative; z-index: 1;
-      padding: 2rem 3rem;
-      border-top: 1px solid rgba(200,255,0,0.08);
+    /* ===================================
+       NAV
+    =================================== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 18px 40px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      transition: background 0.4s ease, backdrop-filter 0.4s ease, box-shadow 0.4s ease;
     }
-    .footer-logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.5rem;
-      color: var(--lime);
+    nav.scrolled {
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 2px 24px rgba(155,89,182,0.1);
     }
-    .footer-copy {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.6rem;
-      letter-spacing: 0.15em;
+    .nav-logo {
+      font-family: var(--font-script);
+      font-size: 1.4rem;
+      color: var(--plum);
+      text-decoration: none;
+      cursor: none;
+    }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--mid);
+      text-decoration: none;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: rgba(245,245,240,0.25);
+      cursor: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--rose); }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: none;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px; height: 2px;
+      background: var(--plum);
+      border-radius: 2px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* Mobile nav */
+    .nav-mobile {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(253,246,255,0.97);
+      backdrop-filter: blur(20px);
+      z-index: 99;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+    }
+    .nav-mobile.open { display: flex; }
+    .nav-mobile a {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      color: var(--plum);
+      text-decoration: none;
+      cursor: none;
     }
 
-    /* ANIMATIONS */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes spinSlow {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    @keyframes marquee {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
-    }
-    @keyframes lineScroll {
-      0% { left: -100%; }
-      50% { left: 100%; }
-      100% { left: 100%; }
-    }
-    @keyframes floatY {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-15px); }
+    /* ===================================
+       SECTION WRAPPERS
+    =================================== */
+    section { padding: 100px 24px; }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--rose);
+      margin-bottom: 12px;
     }
 
-    /* REVEAL */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 700;
+      color: var(--dark);
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      color: var(--mid);
+      font-size: 1rem;
+      font-weight: 300;
+      max-width: 520px;
+      line-height: 1.7;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .section-header .section-desc { margin: 0 auto; }
+
+    /* fade-in on scroll */
     .reveal {
       opacity: 0;
-      transform: translateY(40px);
-      transition: opacity 0.8s ease, transform 0.8s ease;
+      transform: translateY(36px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
     }
     .reveal.visible {
       opacity: 1;
       transform: translateY(0);
     }
 
-    @media (max-width: 768px) {
-      nav { padding: 1.2rem 1.5rem; }
-      .nav-links { display: none; }
-      #hero { padding: 0 1.5rem; }
-      .hero-badge { display: none; }
-      #servicios { padding: 5rem 1.5rem; }
-      .services-grid { grid-template-columns: 1fr; }
-      #sobre-mi { grid-template-columns: 1fr; padding: 5rem 1.5rem; gap: 3rem; }
-      #contacto { padding: 6rem 1.5rem; }
-      footer { flex-direction: column; gap: 1rem; text-align: center; }
-    }
+    /* ===================================
+       MENU SECTION
+    =================================== */
+    #menu { background: var(--light); }
 
-    /* ── PORTAFOLIO MODAL ── */
-    #modal-portafolio {
-      position: fixed;
-      inset: 0;
-      z-index: 500;
+    /* Category tabs */
+    .cat-tabs {
       display: flex;
-      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
       justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease;
+      margin-bottom: 52px;
     }
-    #modal-portafolio.open {
-      opacity: 1;
-      pointer-events: all;
-    }
-    .modal-backdrop {
-      position: absolute; inset: 0;
-      background: rgba(8,8,8,0.92);
-      backdrop-filter: blur(16px);
-    }
-    .modal-inner {
-      position: relative;
-      z-index: 1;
-      width: 92vw;
-      max-width: 1100px;
-      max-height: 88vh;
-      overflow-y: auto;
-      background: #0f0f0f;
-      border: 1px solid rgba(200,255,0,0.15);
-      padding: 3.5rem 3rem;
-      transform: translateY(30px);
-      transition: transform 0.45s cubic-bezier(.23,1,.32,1);
-      scrollbar-width: thin;
-      scrollbar-color: rgba(200,255,0,0.3) transparent;
-    }
-    #modal-portafolio.open .modal-inner {
-      transform: translateY(0);
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 3rem;
-      border-bottom: 1px solid rgba(200,255,0,0.1);
-      padding-bottom: 2rem;
-    }
-    .modal-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: clamp(2.5rem, 6vw, 4.5rem);
-      line-height: 1;
-    }
-    .modal-title em { color: var(--lime); font-style: normal; }
-    .modal-subtitle {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: rgba(245,245,240,0.35);
-      margin-top: 0.5rem;
-    }
-    .modal-close {
-      background: none;
-      border: 1px solid rgba(200,255,0,0.25);
-      color: var(--lime);
-      width: 44px; height: 44px;
-      font-size: 1.2rem;
+    .cat-tab {
+      padding: 10px 22px;
+      border-radius: 60px;
+      border: 1.5px solid #e0cff0;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--mid);
       cursor: none;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      transition: background 0.2s, transform 0.2s;
+      transition: all 0.25s ease;
     }
-    .modal-close:hover { background: rgba(200,255,0,0.1); transform: rotate(90deg); }
+    .cat-tab:hover  { border-color: var(--plum); color: var(--plum); background: #f5eeff; }
+    .cat-tab.active { background: linear-gradient(135deg, var(--rose), var(--plum)); border-color: transparent; color: #fff; box-shadow: 0 4px 18px rgba(155,89,182,0.3); }
 
-    /* EMPTY STATE */
-    .portfolio-empty {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 4rem 2rem;
-      position: relative;
-      overflow: hidden;
-      min-height: 340px;
+    /* Product grid */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
-    #empty-canvas {
+
+    /* Category panel */
+    .cat-panel { display: none; }
+    .cat-panel.active { display: block; }
+
+    /* Product card */
+    .product-card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      position: relative;
+      border: 1.5px solid transparent;
+      background-clip: padding-box;
+      box-shadow: 0 2px 18px rgba(155,89,182,0.07);
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+      transform-style: preserve-3d;
+      will-change: transform;
+      overflow: hidden;
+    }
+    .product-card::before {
+      content: '';
       position: absolute;
       inset: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      opacity: 0.7;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--blush), var(--lavender), var(--mint));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 0;
     }
-    .empty-icon {
-      font-size: 3.5rem;
-      margin-bottom: 1.5rem;
-      position: relative;
-      animation: floatY 3s ease-in-out infinite;
+    .product-card:hover {
+      transform: translateY(-8px) rotateX(4deg) rotateY(-2deg);
+      box-shadow: 0 20px 50px rgba(155,89,182,0.18), 0 4px 16px rgba(232,97,122,0.12);
+      border-color: rgba(155,89,182,0.2);
     }
-    .empty-title {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.5rem;
-      margin-bottom: 0.75rem;
-      position: relative;
+    .product-card:hover::before { opacity: 0.12; }
+
+    .product-card > * { position: relative; z-index: 1; }
+
+    .product-emoji {
+      font-size: 2.2rem;
+      margin-bottom: 14px;
+      display: block;
+      transition: transform 0.3s ease;
     }
-    .empty-desc {
-      font-size: 0.95rem;
-      line-height: 1.7;
-      color: rgba(245,245,240,0.45);
-      max-width: 380px;
-      position: relative;
-    }
-    .empty-coming {
-      margin-top: 2rem;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--lime);
-      border: 1px solid rgba(200,255,0,0.3);
-      padding: 0.6rem 1.4rem;
-      position: relative;
-      animation: pulseBorder 2.5s ease-in-out infinite;
+    .product-card:hover .product-emoji { transform: scale(1.2) rotate(10deg); }
+
+    .product-name {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 8px;
+      line-height: 1.3;
     }
 
-    /* GRID DE PROYECTOS (visible cuando haya) */
-    .portfolio-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
+    .product-price {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--rose);
+      letter-spacing: -0.02em;
     }
-    .project-card {
-      border: 1px solid rgba(200,255,0,0.1);
-      background: #141414;
-      overflow: hidden;
-      position: relative;
-      transition: border-color 0.3s, transform 0.3s;
-      cursor: none;
-    }
-    .project-card:hover { border-color: rgba(200,255,0,0.4); transform: translateY(-4px); }
-    .project-preview {
-      width: 100%; height: 180px;
-      background: var(--gray);
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden;
-      position: relative;
-    }
-    .project-preview iframe {
-      width: 200%; height: 200%;
-      transform: scale(0.5);
-      transform-origin: top left;
-      border: none;
-      pointer-events: none;
-    }
-    .project-info { padding: 1.5rem; }
-    .project-name {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.4rem;
-      margin-bottom: 0.4rem;
-    }
-    .project-tag {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.6rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--lime);
-      opacity: 0.7;
-    }
-    .project-link {
-      display: inline-block;
-      margin-top: 1rem;
-      font-family: 'Space Mono', monospace;
+
+    .product-badge {
+      position: absolute;
+      top: 16px; right: 16px;
       font-size: 0.65rem;
-      letter-spacing: 0.12em;
+      font-weight: 600;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      text-decoration: none;
-      color: var(--lime);
-      border-bottom: 1px solid rgba(200,255,0,0.3);
-      padding-bottom: 2px;
-      transition: border-color 0.2s;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--gold), #f59e0b);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(245,200,66,0.4);
     }
-    .project-link:hover { border-color: var(--lime); }
 
-    @keyframes pulseBorder {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(200,255,0,0); }
-      50% { box-shadow: 0 0 12px 2px rgba(200,255,0,0.15); }
+    /* ===================================
+       ABOUT STRIP
+    =================================== */
+    #about {
+      background: linear-gradient(135deg, #fdf2ff 0%, #fff5f8 50%, #f2fff9 100%);
+      border-top: 1px solid #ecdff5;
+      border-bottom: 1px solid #ecdff5;
     }
-    @keyframes floatY {
+    .about-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .about-visual {
+      position: relative;
+      height: 360px;
+    }
+    .about-card {
+      position: absolute;
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(155,89,182,0.12);
+      font-size: 0.85rem;
+      color: var(--mid);
+    }
+    .about-card-1 { top: 0; left: 0; width: 160px; }
+    .about-card-2 { top: 60px; right: 0; width: 180px; animation-delay: 0.3s; }
+    .about-card-3 { bottom: 30px; left: 30px; width: 170px; animation-delay: 0.6s; }
+    .about-card .card-num {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--rose), var(--plum));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .about-card .card-label { font-size: 0.75rem; font-weight: 500; }
+    .float-anim { animation: floatCard 4s ease-in-out infinite; }
+    .float-anim-2 { animation: floatCard 5s ease-in-out infinite reverse; }
+    .float-anim-3 { animation: floatCard 3.5s ease-in-out infinite; }
+    @keyframes floatCard {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-12px); }
+      50%       { transform: translateY(-12px); }
     }
 
-    @media (max-width: 600px) {
-      .modal-inner { padding: 2rem 1.5rem; }
-      .portfolio-grid { grid-template-columns: 1fr; }
+    @media (max-width: 700px) {
+      .about-inner { grid-template-columns: 1fr; gap: 32px; }
+      .about-visual { height: 240px; }
+    }
+
+    /* ===================================
+       FEATURES STRIP
+    =================================== */
+    .features-strip {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 40px 24px;
+      background: var(--dark);
+    }
+    .feature-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px;
+      border-radius: 60px;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.8);
+      font-size: 0.85rem;
+      font-weight: 400;
+    }
+    .feature-pill span { font-size: 1.3rem; }
+
+    /* ===================================
+       CONTACT / CTA
+    =================================== */
+    #contact {
+      text-align: center;
+      background: linear-gradient(160deg, #fdf2ff 0%, #fff5f8 100%);
+      padding: 120px 24px;
+    }
+    .contact-inner { max-width: 640px; margin: 0 auto; }
+
+    .cta-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 48px;
+      background: linear-gradient(135deg, #25d366, #128c7e);
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 60px;
+      box-shadow: 0 10px 36px rgba(37,211,102,0.35);
+      cursor: none;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      margin-top: 36px;
+    }
+    .cta-main:hover {
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 18px 50px rgba(37,211,102,0.45);
+    }
+    .cta-secondary {
+      display: inline-block;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: var(--mid);
+      font-weight: 300;
+    }
+
+    .contact-decorations {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 48px;
+      opacity: 0.55;
+      font-size: 1.6rem;
+    }
+
+    /* ===================================
+       FOOTER
+    =================================== */
+    footer {
+      background: var(--dark);
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 36px 24px;
+      font-size: 0.8rem;
+      font-weight: 300;
+    }
+    footer strong { color: rgba(255,255,255,0.8); font-weight: 500; }
+
+    /* ===================================
+       PARALLAX BLUR on hero scroll
+    =================================== */
+    /* Applied via JS */
+
+    /* ===================================
+       RESPONSIVE
+    =================================== */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      nav { padding: 16px 24px; }
+      section { padding: 72px 20px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- CUSTOM CURSOR -->
-  <div id="cursor"></div>
-  <div id="cursor-ring"></div>
+  <!-- ================================
+       CUSTOM CURSOR
+  ================================= -->
+  <div id="cursor">🥞</div>
+  <div id="cursor-trail"></div>
 
-  <!-- BACKGROUND 3D -->
-  <canvas id="bg-canvas"></canvas>
-
-  <!-- NAV -->
-  <nav>
-    <div class="nav-logo">Zoe<span>.Dev</span></div>
+  <!-- ================================
+       NAVIGATION
+  ================================= -->
+  <nav id="navbar">
+    <a class="nav-logo" href="#hero">🌈 Rainbows & Sugar</a>
     <ul class="nav-links">
-      <li><a href="#servicios">Servicios</a></li>
-      <li><a href="#" onclick="abrirPortafolio();return false;">Portafolio</a></li>
-      <li><a href="#sobre-mi">Sobre mí</a></li>
-      <li><a href="#contacto">Contacto</a></li>
+      <li><a href="#menu">Menú</a></li>
+      <li><a href="#about">Nosotros</a></li>
+      <li><a href="#contact">Pedidos</a></li>
     </ul>
-    <a href="https://wa.me/526634923545" target="_blank" class="nav-cta">Hablemos →</a>
+    <button class="hamburger" id="hamburger" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
 
-  <!-- HERO -->
-  <section id="hero">
-    <p class="hero-eyebrow">// Diseño Web · Estado de México · 2025</p>
-    <h1 class="hero-title">
-      TU NEGOCIO<br>
-      <em>EN LÍNEA.</em><br>
-      BRUTAL.
-    </h1>
-    <p class="hero-sub">
-      Hago páginas web que convierten visitantes en clientes. Diseño potente, código limpio, resultados reales — desde el Estado de México para todo México y el mundo.
-    </p>
-    <div class="hero-actions">
-      <a href="https://wa.me/526634923545" target="_blank" class="btn-primary">Quiero mi página →</a>
-      <button onclick="abrirPortafolio()" class="btn-ghost" style="border:none;cursor:none;">Ver portafolio</button>
-    </div>
+  <!-- Mobile overlay nav -->
+  <div class="nav-mobile" id="navMobile">
+    <a href="#menu" class="nav-link-mob">🍞 Menú</a>
+    <a href="#about" class="nav-link-mob">✨ Nosotros</a>
+    <a href="#contact" class="nav-link-mob">🍰 Pedidos</a>
+  </div>
 
-    <!-- Rotating badge -->
-    <div class="hero-badge">
-      <svg viewBox="0 0 130 130" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="65" cy="65" r="60" stroke="rgba(200,255,0,0.3)" stroke-width="1"/>
-        <path id="textPath" d="M 65,65 m -50,0 a 50,50 0 1,1 100,0 a 50,50 0 1,1 -100,0" fill="none"/>
-        <text font-family="Space Mono, monospace" font-size="9" fill="#C8FF00" letter-spacing="4">
-          <textPath href="#textPath">ZOE.DEV · PÁGINAS WEB · DISEÑO · CODE · </textPath>
-        </text>
-        <circle cx="65" cy="65" r="6" fill="#C8FF00"/>
-        <circle cx="65" cy="65" r="3" fill="#080808"/>
+  <!-- ================================
+       HERO
+  ================================= -->
+  <section id="hero">
+    <div class="hero-bg" id="heroBg"></div>
+
+    <!-- Decorative blobs -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+
+    <!-- Floating particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Unicorn Pancake Logo (SVG) -->
+    <div class="logo-svg-wrap">
+      <svg class="logo-svg" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Left mini pancake -->
+        <ellipse cx="28" cy="108" rx="22" ry="7" fill="#f9d5e5" stroke="#e8617a" stroke-width="1.5"/>
+        <ellipse cx="28" cy="101" rx="20" ry="6" fill="#fde8f0" stroke="#e8617a" stroke-width="1.5"/>
+        <!-- Right mini donut -->
+        <circle cx="134" cy="104" r="18" fill="#e8d5f9" stroke="#9b59b6" stroke-width="1.5"/>
+        <circle cx="134" cy="104" r="8" fill="#fdf6ff"/>
+        <path d="M126 100 Q134 94 142 100" stroke="#c89aed" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <!-- Main stack: bottom pancake -->
+        <ellipse cx="80" cy="122" rx="38" ry="11" fill="#f9d5e5" stroke="#e8617a" stroke-width="1.5"/>
+        <!-- Middle pancake -->
+        <ellipse cx="80" cy="110" rx="34" ry="10" fill="#fde8f0" stroke="#e8617a" stroke-width="1.5"/>
+        <!-- Top pancake (face) -->
+        <ellipse cx="80" cy="98" rx="30" ry="9.5" fill="#ffeedd" stroke="#e8617a" stroke-width="1.5"/>
+        <!-- Honey drip -->
+        <path d="M60 110 Q58 116 62 118" stroke="#f5c842" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <path d="M95 108 Q97 115 93 117" stroke="#f5c842" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <!-- Eyes -->
+        <circle cx="73" cy="96" r="2.5" fill="#2d1f2e"/>
+        <circle cx="87" cy="96" r="2.5" fill="#2d1f2e"/>
+        <circle cx="74" cy="95" r="1" fill="#fff"/>
+        <circle cx="88" cy="95" r="1" fill="#fff"/>
+        <!-- Smile -->
+        <path d="M75 101 Q80 105 85 101" stroke="#e8617a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <!-- Blush -->
+        <ellipse cx="69" cy="99" rx="4" ry="2.5" fill="#f9d5e5" opacity="0.8"/>
+        <ellipse cx="91" cy="99" rx="4" ry="2.5" fill="#f9d5e5" opacity="0.8"/>
+        <!-- Horn -->
+        <path d="M80 88 L75 60 L85 60 Z" fill="url(#hornGrad)" stroke="#c89aed" stroke-width="1"/>
+        <!-- Horn stripes -->
+        <line x1="77" y1="82" x2="83" y2="82" stroke="#e8617a" stroke-width="1" opacity="0.6"/>
+        <line x1="76" y1="76" x2="84" y2="76" stroke="#9b59b6" stroke-width="1" opacity="0.6"/>
+        <line x1="77" y1="70" x2="83" y2="70" stroke="#5b8af0" stroke-width="1" opacity="0.6"/>
+        <!-- Ears -->
+        <path d="M51 92 Q47 80 54 82 Q56 90 51 92Z" fill="#fde8f0" stroke="#e8617a" stroke-width="1"/>
+        <path d="M109 92 Q113 80 106 82 Q104 90 109 92Z" fill="#fde8f0" stroke="#e8617a" stroke-width="1"/>
+        <!-- Mane/rainbow arc -->
+        <path d="M55 88 Q65 52 80 58 Q95 52 105 88" stroke="url(#rainbowGrad)" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7"/>
+        <!-- Stars -->
+        <text x="36" y="78" font-size="10" opacity="0.7">✨</text>
+        <text x="110" y="74" font-size="10" opacity="0.7">⭐</text>
+        <text x="66" y="50" font-size="8" opacity="0.6">🌟</text>
+
+        <defs>
+          <linearGradient id="hornGrad" x1="80" y1="60" x2="80" y2="88" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#f5c842"/>
+            <stop offset="100%" stop-color="#e8617a"/>
+          </linearGradient>
+          <linearGradient id="rainbowGrad" x1="55" y1="70" x2="105" y2="70" gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stop-color="#e8617a"/>
+            <stop offset="25%"  stop-color="#f5c842"/>
+            <stop offset="50%"  stop-color="#5bc45f"/>
+            <stop offset="75%"  stop-color="#5b8af0"/>
+            <stop offset="100%" stop-color="#9b59b6"/>
+          </linearGradient>
+        </defs>
       </svg>
     </div>
 
+    <!-- Hero text -->
+    <div class="hero-content">
+      <h1 class="hero-title">Rainbows<br>&amp; Sugar</h1>
+      <p class="hero-sub">Panadería artesanal con magia 🌈</p>
+      <p class="hero-tagline">Hecho con amor · Masa madre · Repostería</p>
+      <a href="#contact" class="hero-cta">Haz tu pedido ahora 🍰</a>
+    </div>
+
     <div class="scroll-hint">
-      <div class="scroll-line"></div>
-      Scroll para explorar
+      <span>Descubre</span>
+      <svg viewBox="0 0 24 24" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
   </section>
 
-  <!-- MARQUEE -->
-  <div class="marquee-section">
-    <div class="marquee-track">
-      <!-- doubled for seamless loop -->
-      <span class="marquee-item">Diseño Web <span class="marquee-dot"></span></span>
-      <span class="marquee-item">Landing Pages <span class="marquee-dot"></span></span>
-      <span class="marquee-item">E-commerce <span class="marquee-dot"></span></span>
-      <span class="marquee-item">Portafolios <span class="marquee-dot"></span></span>
-      <span class="marquee-item">Apps Web <span class="marquee-dot"></span></span>
-      <span class="marquee-item">Estado de México <span class="marquee-dot"></span></span>
-      <span class="marquee-item">Diseño Web <span class="marquee-dot"></span></span>
-      <span class="marquee-item">Landing Pages <span class="marquee-dot"></span></span>
-      <span class="marquee-item">E-commerce <span class="marquee-dot"></span></span>
-      <span class="marquee-item">Portafolios <span class="marquee-dot"></span></span>
-      <span class="marquee-item">Apps Web <span class="marquee-dot"></span></span>
-      <span class="marquee-item">Estado de México <span class="marquee-dot"></span></span>
-    </div>
+  <!-- ================================
+       FEATURES STRIP
+  ================================= -->
+  <div class="features-strip">
+    <div class="feature-pill"><span>🌾</span> Masa madre natural</div>
+    <div class="feature-pill"><span>🧁</span> Repostería artesanal</div>
+    <div class="feature-pill"><span>🎨</span> Galletas personalizadas</div>
+    <div class="feature-pill"><span>🚚</span> Pedidos a domicilio</div>
+    <div class="feature-pill"><span>💜</span> Hecho con amor</div>
   </div>
 
-  <!-- SERVICIOS -->
-  <section id="servicios">
-    <div class="reveal">
-      <p class="section-label">// Lo que hago</p>
-      <h2 class="section-title">SERVICIOS<br>QUE <em style="color:var(--lime)">IMPACTAN</em></h2>
+  <!-- ================================
+       MENU SECTION
+  ================================= -->
+  <section id="menu">
+    <div class="section-header reveal">
+      <p class="section-label">Nuestro menú</p>
+      <h2 class="section-title">Bocados que enamoran</h2>
+      <p class="section-desc">Cada pieza es elaborada a mano, con ingredientes de calidad y mucho amor. ✨</p>
     </div>
-    <div class="services-grid reveal">
-      <div class="service-card">
-        <p class="service-num">01</p>
-        <span class="service-icon">⚡</span>
-        <h3 class="service-name">Landing Pages</h3>
-        <p class="service-desc">Páginas de aterrizaje diseñadas para convertir. Rápidas, responsivas y con identidad visual que deja huella.</p>
-      </div>
-      <div class="service-card">
-        <p class="service-num">02</p>
-        <span class="service-icon">🛒</span>
-        <h3 class="service-name">Tiendas Online</h3>
-        <p class="service-desc">Vende tus productos las 24 horas. E-commerce a medida con catálogo, carrito y pagos integrados.</p>
-      </div>
-      <div class="service-card">
-        <p class="service-num">03</p>
-        <span class="service-icon">🎨</span>
-        <h3 class="service-name">Portafolios</h3>
-        <p class="service-desc">Muestra tu trabajo al mundo con un sitio que refleja tu personalidad y nivel profesional.</p>
-      </div>
-      <div class="service-card">
-        <p class="service-num">04</p>
-        <span class="service-icon">🏢</span>
-        <h3 class="service-name">Sitios Corporativos</h3>
-        <p class="service-desc">Presencia digital seria y profesional para empresas, negocios locales y emprendimientos en crecimiento.</p>
-      </div>
-      <div class="service-card">
-        <p class="service-num">05</p>
-        <span class="service-icon">📱</span>
-        <h3 class="service-name">Diseño Responsivo</h3>
-        <p class="service-desc">Todos los sitios se ven perfectos en celular, tablet y computadora. Sin excepciones.</p>
-      </div>
-      <div class="service-card">
-        <p class="service-num">06</p>
-        <span class="service-icon">🔧</span>
-        <h3 class="service-name">Mantenimiento</h3>
-        <p class="service-desc">Actualizaciones, cambios de contenido y soporte para que tu web siempre esté al día.</p>
-      </div>
-    </div>
-  </section>
 
-  <!-- 3D FLOATING SCENE -->
-  <section id="scene-section">
-    <canvas id="scene-canvas"></canvas>
-    <div class="scene-overlay-text">
-      <p class="scene-big">CÓDIGO</p>
-      <p class="scene-big">+ DISEÑO</p>
-      <p class="scene-big">= MAGIA</p>
+    <!-- Category Tabs -->
+    <div class="cat-tabs reveal" id="catTabs">
+      <button class="cat-tab active" data-cat="masa-madre">🌾 Masa Madre</button>
+      <button class="cat-tab" data-cat="sandwich">🥪 Pan Sándwich</button>
+      <button class="cat-tab" data-cat="reposteria">🧁 Repostería</button>
+      <button class="cat-tab" data-cat="ingredientes">🫙 Ingredientes Extra</button>
+      <button class="cat-tab" data-cat="salados">🧀 Salados</button>
+      <button class="cat-tab" data-cat="galletas">🍪 Galletas Royal</button>
+      <button class="cat-tab" data-cat="dulces">🍮 Dulces</button>
+      <button class="cat-tab" data-cat="otros">🎁 Otros</button>
     </div>
-  </section>
 
-  <!-- SOBRE MÍ -->
-  <section id="sobre-mi">
-    <div class="about-visual reveal">
-      <div class="about-card">
-        <span class="about-emoji">👋</span>
-        <h3 style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;margin-bottom:0.5rem;">Zoe</h3>
-        <p style="color:rgba(245,245,240,0.5);font-size:0.9rem;margin-bottom:0.5rem;">Diseñador Web · 17 años</p>
-        <p style="color:rgba(245,245,240,0.5);font-size:0.85rem;">📍 Estado de México</p>
-        <div class="stat-grid">
-          <div class="stat-item">
-            <p class="stat-num">100%</p>
-            <p class="stat-label">Dedicación</p>
+    <!-- Category Panels -->
+    <div id="catPanels">
+
+      <!-- Masa Madre: Hogaza -->
+      <div class="cat-panel active" id="cat-masa-madre">
+        <div class="product-grid">
+          <div class="product-card reveal">
+            <span class="product-emoji">🍞</span>
+            <div class="product-name">Hogaza Campesina</div>
+            <div class="product-price">— consultar —</div>
           </div>
-          <div class="stat-item">
-            <p class="stat-num">∞</p>
-            <p class="stat-label">Creatividad</p>
+          <div class="product-card reveal">
+            <span class="product-badge">Popular</span>
+            <span class="product-emoji">🌿</span>
+            <div class="product-name">Hierbas Italianas y Queso Parmesano</div>
+            <div class="product-price">MXN $85.00</div>
           </div>
-          <div class="stat-item">
-            <p class="stat-num">24h</p>
-            <p class="stat-label">Respuesta</p>
+          <div class="product-card reveal">
+            <span class="product-emoji">🧄</span>
+            <div class="product-name">Ajo · Parmesano Hogaza Tradicional</div>
+            <div class="product-price">MXN $85.00</div>
           </div>
-          <div class="stat-item">
-            <p class="stat-num">MX</p>
-            <p class="stat-label">Base</p>
+          <div class="product-card reveal">
+            <span class="product-emoji">🌿🧄</span>
+            <div class="product-name">Hierbas Italianas · Ajo · Parmesano</div>
+            <div class="product-price">MXN $90.00</div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="about-content reveal">
-      <p class="section-label">// Quién soy</p>
-      <h2 class="section-title">JOVEN,<br>HAMBRIENTO,<br><em style="color:var(--lime)">DIFERENTE.</em></h2>
-      <p class="about-text">
-        Soy Zoe, tengo 17 años y vivo en el <strong>Estado de México</strong>. Desde chico me enamoré del código y del diseño — esa combinación explosiva de lógica y creatividad que convierte ideas en experiencias digitales reales.
-      </p>
-      <p class="about-text">
-        Mi misión es simple: que cualquier negocio, chico o grande, tenga una <strong>presencia web que impacte</strong>. Sin plantillas genéricas, sin relleno — solo diseño pensado para tus clientes y tu historia.
-      </p>
-      <div class="stack-tags">
-        <span class="tag">HTML/CSS</span>
-        <span class="tag">JavaScript</span>
-        <span class="tag">Diseño UI/UX</span>
-        <span class="tag">Responsivo</span>
-        <span class="tag">Animaciones</span>
-        <span class="tag">3D Web</span>
-      </div>
-    </div>
-  </section>
 
-  <!-- CTA -->
-  <section id="contacto">
-    <div class="cta-bg"></div>
-    <div class="reveal">
-      <h2 class="cta-title">
-        ¿LISTO PARA<br>
-        <em>DESTACAR?</em>
-      </h2>
-      <p class="cta-sub">
-        Mándame un mensaje por WhatsApp y platicamos sin compromiso. Cuéntame tu idea y hacemos realidad tu página web.
-      </p>
-      <a href="https://wa.me/526634923545?text=Hola%20Zoe!%20Vi%20tu%20p%C3%A1gina%20web%20y%20me%20interesa%20un%20proyecto.%20%C2%BFMe%20puedes%20dar%20m%C3%A1s%20informaci%C3%B3n%3F" target="_blank" class="whatsapp-btn">
-        <svg class="wa-icon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
-        Escribir por WhatsApp
-      </a>
-    </div>
-  </section>
-
-  <!-- ══════════════════════════════════════
-       MODAL PORTAFOLIO
-       Para agregar un proyecto:
-       1. Pon hastaEmptyState = false
-       2. Agrega un .project-card dentro de #projects-grid
-       ══════════════════════════════════════ -->
-  <div id="modal-portafolio" role="dialog" aria-modal="true" aria-label="Portafolio">
-    <div class="modal-backdrop" onclick="cerrarPortafolio()"></div>
-    <div class="modal-inner">
-      <div class="modal-header">
-        <div>
-          <h2 class="modal-title">MI<br><em>PORTAFOLIO</em></h2>
-          <p class="modal-subtitle">// Proyectos realizados</p>
+      <!-- Pan para Sándwich -->
+      <div class="cat-panel" id="cat-sandwich">
+        <div class="product-grid">
+          <div class="product-card reveal">
+            <span class="product-badge">Especial</span>
+            <span class="product-emoji">🫐🍫</span>
+            <div class="product-name">Arándanos · Nuez · Chocolate</div>
+            <div class="product-price">MXN $100.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🍞</span>
+            <div class="product-name">Pan para sándwich / Pan de caja</div>
+            <div class="product-price">MXN $70.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🫐🌰</span>
+            <div class="product-name">Arándanos · Almendras</div>
+            <div class="product-price">MXN $90.00</div>
+          </div>
         </div>
-        <button class="modal-close" onclick="cerrarPortafolio()" title="Cerrar">✕</button>
       </div>
 
-      <!-- ── ESTADO VACÍO (se oculta automáticamente cuando hay proyectos) ── -->
-      <div class="portfolio-empty" id="empty-state">
-        <canvas id="empty-canvas"></canvas>
-        <div class="empty-icon">🚧</div>
-        <h3 class="empty-title">Próximamente...</h3>
-        <p class="empty-desc">
-          Estoy trabajando en mis primeros proyectos. Pronto verás aquí las páginas web que voy creando para negocios y emprendimientos.
+      <!-- Repostería y Panadería -->
+      <div class="cat-panel" id="cat-reposteria">
+        <div class="product-grid">
+          <div class="product-card reveal">
+            <span class="product-emoji">🥧</span>
+            <div class="product-name">Apple Pie</div>
+            <div class="product-price">MXN $250.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-badge">16 piezas</span>
+            <span class="product-emoji">🍫</span>
+            <div class="product-name">Bigotes de chocolate (mini)</div>
+            <div class="product-price">MXN $100.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-badge">6 piezas</span>
+            <span class="product-emoji">🌀</span>
+            <div class="product-name">Roles de Canela con glaseado Cream Cheese</div>
+            <div class="product-price">MXN $250.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ingredientes Extra -->
+      <div class="cat-panel" id="cat-ingredientes">
+        <div class="product-grid">
+          <div class="product-card reveal">
+            <span class="product-emoji">🫒</span>
+            <div class="product-name">Aceite de Oliva</div>
+            <div class="product-price">MXN $10.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🍫</span>
+            <div class="product-name">Chispas de chocolate semi amargo</div>
+            <div class="product-price">MXN $15.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🌰</span>
+            <div class="product-name">Nuez troceada</div>
+            <div class="product-price">MXN $15.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🍯</span>
+            <div class="product-name">Miel de abeja</div>
+            <div class="product-price">MXN $15.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Salados -->
+      <div class="cat-panel" id="cat-salados">
+        <div class="product-grid">
+          <div class="product-card reveal">
+            <span class="product-emoji">🧀🌀</span>
+            <div class="product-name">Roles de Parmesano y mantequilla</div>
+            <div class="product-price">MXN $250.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🧄🧀</span>
+            <div class="product-name">Ajo · Parmesano Hogaza Tradicional</div>
+            <div class="product-price">MXN $85.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🌿🧀</span>
+            <div class="product-name">Hierbas Italianas y Queso Parmesano</div>
+            <div class="product-price">MXN $85.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-badge">16 piezas</span>
+            <span class="product-emoji">🥨</span>
+            <div class="product-name">Bigotes salados (mini)</div>
+            <div class="product-price">MXN $80.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Galletas Royal Icing -->
+      <div class="cat-panel" id="cat-galletas">
+        <div class="product-grid">
+          <div class="product-card reveal">
+            <span class="product-emoji">🎨</span>
+            <div class="product-name">Galleta personalizada</div>
+            <div class="product-price">MXN $50.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🍪</span>
+            <div class="product-name">Galleta con Royal Icing</div>
+            <div class="product-price">MXN $35.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-badge">Set</span>
+            <span class="product-emoji">🎁</span>
+            <div class="product-name">Set de galletas Royal Icing</div>
+            <div class="product-price">MXN $200.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🖌️</span>
+            <div class="product-name">Galletas PYO (Lienzo para colorear)</div>
+            <div class="product-price">MXN $60.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-badge">Set</span>
+            <span class="product-emoji">🐣</span>
+            <div class="product-name">Set galletas de Pascua</div>
+            <div class="product-price">MXN $100.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">✨🍪</span>
+            <div class="product-name">Galleta Royal Icing personalizada</div>
+            <div class="product-price">MXN $60.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dulces -->
+      <div class="cat-panel" id="cat-dulces">
+        <div class="product-grid">
+          <div class="product-card reveal">
+            <span class="product-badge">Premium</span>
+            <span class="product-emoji">☕</span>
+            <div class="product-name">Tiramisú</div>
+            <div class="product-price">MXN $800.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🥧</span>
+            <div class="product-name">Apple Pie</div>
+            <div class="product-price">MXN $250.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🍪</span>
+            <div class="product-name">Galleta estilo New York</div>
+            <div class="product-price">MXN $40.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🍌</span>
+            <div class="product-name">Panqué de plátano</div>
+            <div class="product-price">MXN $150.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🌽</span>
+            <div class="product-name">Pastel de elote</div>
+            <div class="product-price">MXN $250.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-badge">Alemán</span>
+            <span class="product-emoji">🍎</span>
+            <div class="product-name">Apfelstrudel (strudel de manzana)</div>
+            <div class="product-price">MXN $400.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🍫</span>
+            <div class="product-name">Chocolatines</div>
+            <div class="product-price">MXN $130.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🌀</span>
+            <div class="product-name">Roles de canela con glaseado clásico</div>
+            <div class="product-price">MXN $180.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🍪🧈</span>
+            <div class="product-name">Galletas de mantequilla (½ kilo)</div>
+            <div class="product-price">MXN $115.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🎂</span>
+            <div class="product-name">Pastelito Garibaldi</div>
+            <div class="product-price">MXN $200.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Otros -->
+      <div class="cat-panel" id="cat-otros">
+        <div class="product-grid">
+          <div class="product-card reveal">
+            <span class="product-emoji">🧀</span>
+            <div class="product-name">Bigotitos Philadelphia</div>
+            <div class="product-price">MXN $140.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🥯</span>
+            <div class="product-name">Bagels</div>
+            <div class="product-price">MXN $140.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🍫✨</span>
+            <div class="product-name">Delicia de chocolate</div>
+            <div class="product-price">MXN $90.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🍞</span>
+            <div class="product-name">Hogaza tradicional Natural</div>
+            <div class="product-price">MXN $50.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🫐🌰</span>
+            <div class="product-name">Arándano · Nuez</div>
+            <div class="product-price">MXN $90.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🌾</span>
+            <div class="product-name">Pan con Semillas</div>
+            <div class="product-price">MXN $90.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🥨</span>
+            <div class="product-name">Bigotes Mix</div>
+            <div class="product-price">MXN $90.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🧄🌿</span>
+            <div class="product-name">Ajo · Hierbas Italianas Hogaza Tradicional</div>
+            <div class="product-price">MXN $75.00</div>
+          </div>
+          <div class="product-card reveal">
+            <span class="product-emoji">🌀✨</span>
+            <div class="product-name">Delicia de canela</div>
+            <div class="product-price">MXN $90.00</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /catPanels -->
+  </section>
+
+  <!-- ================================
+       ABOUT SECTION
+  ================================= -->
+  <section id="about">
+    <div class="about-inner">
+      <!-- Visual cards -->
+      <div class="about-visual reveal">
+        <div class="about-card about-card-1 float-anim">
+          <div class="card-num">100%</div>
+          <div class="card-label">Ingredientes naturales</div>
+        </div>
+        <div class="about-card about-card-2 float-anim-2">
+          <div class="card-num">🌈</div>
+          <div class="card-label">Hecho con amor y magia</div>
+        </div>
+        <div class="about-card about-card-3 float-anim-3">
+          <div class="card-num">+30</div>
+          <div class="card-label">Productos únicos en el menú</div>
+        </div>
+      </div>
+      <!-- Text -->
+      <div class="reveal">
+        <p class="section-label">Nuestra historia</p>
+        <h2 class="section-title">Pan artesanal con alma 🫶</h2>
+        <p class="section-desc">
+          En Rainbows and Sugar creemos que cada pan tiene una historia. Nuestra masa madre es cultivada con paciencia, nuestros roles de canela son horneados al amanecer y nuestras galletas son pintadas con dedicación.
+          <br/><br/>
+          Desde hogazas rústicas hasta delicadas galletas con Royal Icing, cada bocado está diseñado para sorprenderte.
         </p>
-        <span class="empty-coming">En construcción</span>
       </div>
+    </div>
+  </section>
 
-      <!-- ── GRID DE PROYECTOS (agregar cards aquí) ──
-           Ejemplo de card — descomenta y edita cuando tengas proyectos:
-
-      <div class="portfolio-grid" id="projects-grid">
-
-        <div class="project-card">
-          <div class="project-preview">
-            <iframe src="https://URL-DE-TU-PAGINA.com"></iframe>
-          </div>
-          <div class="project-info">
-            <p class="project-tag">Landing Page</p>
-            <h3 class="project-name">Nombre del Proyecto</h3>
-            <a href="https://URL-DE-TU-PAGINA.com" target="_blank" class="project-link">Ver sitio →</a>
-          </div>
+  <!-- ================================
+       CONTACT / CTA SECTION
+  ================================= -->
+  <section id="contact">
+    <div class="contact-inner">
+      <div class="reveal">
+        <p class="section-label">¿Antojo irresistible?</p>
+        <h2 class="section-title">Haz tu pedido ahora 🌈</h2>
+        <p class="section-desc" style="margin:0 auto;">
+          Escríbenos por WhatsApp y con gusto te ayudamos a crear el pedido perfecto para ti o para regalar. Pedidos personalizados con amor. 💜
+        </p>
+        <a
+          href="https://wa.me/525549273159"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="cta-main"
+        >
+          <!-- WhatsApp SVG icon -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+          Contáctanos por WhatsApp
+        </a>
+        <div>
+          <span class="cta-secondary">📍 Pedidos personalizados · Entrega a domicilio</span>
         </div>
 
+        <div class="contact-decorations">
+          <span>🍞</span><span>🧁</span><span>🍪</span><span>🥧</span>
+          <span>🌈</span><span>🍫</span><span>🥐</span><span>🎂</span>
+        </div>
       </div>
-      ── -->
-
     </div>
-  </div>
+  </section>
 
-  <!-- FOOTER -->
+  <!-- ================================
+       FOOTER
+  ================================= -->
   <footer>
-    <div class="footer-logo">Zoe.Dev</div>
-    <p class="footer-copy">© 2025 Zoe · Estado de México · Diseño Web</p>
-    <a href="https://wa.me/526634923545" target="_blank" style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--lime);text-decoration:none;">+52 663 492 3545</a>
+    <p>© 2025 <strong>Rainbows and Sugar</strong> · Panadería artesanal 🌈 · Hecho con 💜 en México</p>
   </footer>
 
+  <!-- ================================
+       JAVASCRIPT
+  ================================= -->
   <script>
-  // ── CURSOR ──
-  const cursor = document.getElementById('cursor');
-  const ring   = document.getElementById('cursor-ring');
-  let mx = 0, my = 0, rx = 0, ry = 0;
-  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-  function animCursor() {
-    cursor.style.transform = `translate(${mx-7}px, ${my-7}px)`;
-    rx += (mx - rx) * 0.12;
-    ry += (my - ry) *.12;
-    ring.style.transform = `translate(${rx-20}px, ${ry-20}px)`;
-    requestAnimationFrame(animCursor);
-  }
-  animCursor();
-  document.querySelectorAll('a, button').forEach(el => {
-    el.addEventListener('mouseenter', () => { cursor.style.transform += ' scale(2)'; });
-    el.addEventListener('mouseleave', () => { cursor.style.transform = cursor.style.transform.replace(' scale(2)', ''); });
-  });
+    /* ===============================
+       1. CUSTOM CURSOR
+    =============================== */
+    const cursor = document.getElementById('cursor');
+    const trail  = document.getElementById('cursor-trail');
+    let mx = 0, my = 0;
 
-  // ── BG 3D: floating particles + wireframe sphere ──
-  (function() {
-    const canvas = document.getElementById('bg-canvas');
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
-    camera.position.z = 40;
-
-    // Particles
-    const pGeo = new THREE.BufferGeometry();
-    const count = 1800;
-    const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * 160;
-    pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const pMat = new THREE.PointsMaterial({ color: 0xC8FF00, size: 0.18, transparent: true, opacity: 0.35 });
-    scene.add(new THREE.Points(pGeo, pMat));
-
-    // Wireframe torus knot
-    const tGeo = new THREE.TorusKnotGeometry(10, 3, 160, 20);
-    const tMat = new THREE.MeshBasicMaterial({ color: 0xC8FF00, wireframe: true, transparent: true, opacity: 0.04 });
-    const torus = new THREE.Mesh(tGeo, tMat);
-    scene.add(torus);
-
-    // Mouse parallax
-    let tx = 0, ty = 0;
     document.addEventListener('mousemove', e => {
-      tx = (e.clientX / window.innerWidth  - 0.5) * 8;
-      ty = (e.clientY / window.innerHeight - 0.5) * 8;
+      mx = e.clientX; my = e.clientY;
+      cursor.style.left = mx + 'px';
+      cursor.style.top  = my + 'px';
+
+      // Trail dot
+      const dot = document.createElement('div');
+      dot.className = 'trail-dot';
+      dot.style.left = mx + 'px';
+      dot.style.top  = my + 'px';
+      // Random pastel colour
+      const hues = [340, 280, 200, 120, 40];
+      const h = hues[Math.floor(Math.random() * hues.length)];
+      dot.style.background = `hsl(${h}, 70%, 75%)`;
+      trail.appendChild(dot);
+      setTimeout(() => dot.remove(), 600);
     });
 
-    let camX = 0, camY = 0;
-    function animate(t) {
-      requestAnimationFrame(animate);
-      torus.rotation.x = t * 0.0002;
-      torus.rotation.y = t * 0.0003;
-      camX += (tx - camX) * 0.03;
-      camY += (-ty - camY) * 0.03;
-      camera.position.x = camX;
-      camera.position.y = camY;
-      camera.lookAt(0,0,0);
-      renderer.render(scene, camera);
+    document.addEventListener('mousedown', () => cursor.classList.add('clicking'));
+    document.addEventListener('mouseup',   () => cursor.classList.remove('clicking'));
+
+    /* ===============================
+       2. FLOATING PARTICLES
+    =============================== */
+    const particleEmojis = ['🌟','✨','🌈','🍭','💜','🌸','⭐','🎀'];
+    const particlesEl = document.getElementById('particles');
+
+    function spawnParticle() {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.textContent = particleEmojis[Math.floor(Math.random() * particleEmojis.length)];
+      p.style.left  = Math.random() * 100 + '%';
+      p.style.fontSize = (0.8 + Math.random() * 0.8) + 'rem';
+      const dur = 8 + Math.random() * 8;
+      p.style.animationDuration = dur + 's';
+      p.style.animationDelay   = Math.random() * dur + 's';
+      particlesEl.appendChild(p);
+      setTimeout(() => p.remove(), dur * 1000 + 500);
     }
-    animate(0);
+    // Spawn periodically
+    for (let i = 0; i < 10; i++) spawnParticle();
+    setInterval(spawnParticle, 1200);
 
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  })();
+    /* ===============================
+       3. HERO PARALLAX / BLUR ON SCROLL
+    =============================== */
+    const heroBg  = document.getElementById('heroBg');
+    const heroEl  = document.getElementById('hero');
 
-  // ── SCENE 3D: floating geometric shapes ──
-  (function() {
-    const canvas = document.getElementById('scene-canvas');
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    const W = canvas.parentElement.clientWidth;
-    const H = canvas.parentElement.clientHeight;
-    renderer.setSize(W, H);
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY;
+      const heroH   = heroEl.offsetHeight;
+      const progress = Math.min(scrollY / heroH, 1);
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 200);
-    camera.position.z = 30;
+      // Blur up to 14px
+      const blurVal = progress * 14;
+      // Brighten (white overlay via brightness)
+      heroBg.style.filter = `blur(${blurVal}px) brightness(${1 + progress * 0.3})`;
+      // Slight scale
+      heroBg.style.transform = `scale(${1 + progress * 0.05})`;
+    }, { passive: true });
 
-    const mat = new THREE.MeshBasicMaterial({ color: 0xC8FF00, wireframe: true, transparent: true, opacity: 0.5 });
-    const shapes = [];
+    /* ===============================
+       4. NAVBAR SCROLL EFFECT
+    =============================== */
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+    }, { passive: true });
 
-    const geos = [
-      new THREE.OctahedronGeometry(4),
-      new THREE.IcosahedronGeometry(3.5, 0),
-      new THREE.TetrahedronGeometry(3),
-      new THREE.OctahedronGeometry(2.5),
-      new THREE.IcosahedronGeometry(2),
-    ];
+    /* ===============================
+       5. HAMBURGER / MOBILE NAV
+    =============================== */
+    const hamburger = document.getElementById('hamburger');
+    const navMobile = document.getElementById('navMobile');
 
-    geos.forEach((g, i) => {
-      const m = new THREE.Mesh(g, mat.clone());
-      m.position.set(
-        (i - 2) * 12,
-        Math.sin(i * 1.3) * 5,
-        -i * 2
-      );
-      m.userData.speed = 0.4 + i * 0.15;
-      m.userData.phase = i * 1.2;
-      scene.add(m);
-      shapes.push(m);
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      navMobile.classList.toggle('open');
     });
 
-    // Grid
-    const grid = new THREE.GridHelper(80, 20, 0x222200, 0x111100);
-    grid.position.y = -15;
-    scene.add(grid);
-
-    function animate(t) {
-      requestAnimationFrame(animate);
-      const s = t * 0.001;
-      shapes.forEach(m => {
-        m.rotation.x = s * m.userData.speed;
-        m.rotation.y = s * m.userData.speed * 0.7;
-        m.position.y = Math.sin(s * m.userData.speed + m.userData.phase) * 6;
+    document.querySelectorAll('.nav-link-mob').forEach(a => {
+      a.addEventListener('click', () => {
+        hamburger.classList.remove('open');
+        navMobile.classList.remove('open');
       });
-      renderer.render(scene, camera);
-    }
-    animate(0);
-  })();
-
-  // ── SCROLL REVEAL ──
-  const reveals = document.querySelectorAll('.reveal');
-  const io = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        io.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.15 });
-  reveals.forEach(el => io.observe(el));
-  // ── PORTAFOLIO MODAL ──
-  const modal = document.getElementById('modal-portafolio');
-
-  function abrirPortafolio() {
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    initEmptyCanvas();
-  }
-  function cerrarPortafolio() {
-    modal.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarPortafolio(); });
-
-  // Canvas 3D decorativo del estado vacío
-  let emptyInited = false;
-  function initEmptyCanvas() {
-    if (emptyInited) return;
-    emptyInited = true;
-    const c = document.getElementById('empty-canvas');
-    if (!c) return;
-    const W = c.parentElement.clientWidth;
-    const H = c.parentElement.clientHeight || 340;
-    const ren = new THREE.WebGLRenderer({ canvas: c, alpha: true, antialias: true });
-    ren.setPixelRatio(window.devicePixelRatio);
-    ren.setSize(W, H);
-    const sc = new THREE.Scene();
-    const cam = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
-    cam.position.z = 18;
-
-    // Floating rings
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0xC8FF00, wireframe: true, transparent: true, opacity: 0.25 });
-    const rings = [];
-    [6, 4, 2.5].forEach((r, i) => {
-      const mesh = new THREE.Mesh(new THREE.TorusGeometry(r, 0.08, 8, 40), ringMat.clone());
-      mesh.rotation.x = Math.PI / 3 * i;
-      mesh.userData.phase = i * 1.1;
-      sc.add(mesh);
-      rings.push(mesh);
     });
 
-    // Center icosahedron
-    const ico = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(2.2, 0),
-      new THREE.MeshBasicMaterial({ color: 0xC8FF00, wireframe: true, transparent: true, opacity: 0.35 })
-    );
-    sc.add(ico);
+    /* ===============================
+       6. CATEGORY TABS
+    =============================== */
+    const tabs   = document.querySelectorAll('.cat-tab');
+    const panels = document.querySelectorAll('.cat-panel');
 
-    // Particles
-    const pg = new THREE.BufferGeometry();
-    const pp = new Float32Array(300 * 3);
-    for (let i = 0; i < 900; i++) pp[i] = (Math.random() - 0.5) * 40;
-    pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
-    sc.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xC8FF00, size: 0.12, transparent: true, opacity: 0.3 })));
-
-    function loop(t) {
-      requestAnimationFrame(loop);
-      const s = t * 0.001;
-      ico.rotation.y = s * 0.5;
-      ico.rotation.x = s * 0.3;
-      rings.forEach((r, i) => {
-        r.rotation.z = s * (0.3 + i * 0.1);
-        r.rotation.x = s * 0.15 + r.userData.phase;
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t  => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        const target = document.getElementById('cat-' + tab.dataset.cat);
+        if (target) {
+          target.classList.add('active');
+          // Re-trigger reveal animations for cards in this panel
+          target.querySelectorAll('.reveal').forEach((el, i) => {
+            el.classList.remove('visible');
+            setTimeout(() => el.classList.add('visible'), i * 60);
+          });
+        }
       });
-      ren.render(sc, cam);
-    }
-    loop(0);
-  }
+    });
+
+    /* ===============================
+       7. SCROLL REVEAL (Intersection Observer)
+    =============================== */
+    const revealEls = document.querySelectorAll('.reveal');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          // Stagger children inside product grids
+          const siblings = [...entry.target.parentElement.children];
+          const idx = siblings.indexOf(entry.target);
+          entry.target.style.transitionDelay = (idx * 0.06) + 's';
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+    revealEls.forEach(el => observer.observe(el));
+
+    /* ===============================
+       8. 3D CARD TILT on mouse move
+    =============================== */
+    document.querySelectorAll('.product-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const cx   = rect.left + rect.width / 2;
+        const cy   = rect.top  + rect.height / 2;
+        const dx   = (e.clientX - cx) / (rect.width  / 2);
+        const dy   = (e.clientY - cy) / (rect.height / 2);
+        card.style.transform = `
+          translateY(-8px)
+          rotateX(${-dy * 8}deg)
+          rotateY(${dx * 8}deg)
+          scale(1.02)
+        `;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+    });
+
+    /* ===============================
+       9. INITIAL REVEAL (active panel)
+    =============================== */
+    // Trigger visible for first active panel
+    document.querySelectorAll('.cat-panel.active .reveal').forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), 300 + i * 70);
+    });
   </script>
 </body>
 </html>
